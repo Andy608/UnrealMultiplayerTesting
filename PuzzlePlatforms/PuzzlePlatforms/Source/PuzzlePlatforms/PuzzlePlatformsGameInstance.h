@@ -19,9 +19,15 @@ public:
 
 	virtual void Init();
 
+	UFUNCTION(BlueprintCallable)
+	void LoadMainMenu();
+
 	UFUNCTION(Exec)
 	void Host();
 
 	UFUNCTION(Exec)
 	void Join(const FString& Address);
+
+private:
+	TSubclassOf<class UUserWidget> MenuClass;
 };
