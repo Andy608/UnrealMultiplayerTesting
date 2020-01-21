@@ -16,6 +16,9 @@ bool UMainMenu::Initialize()
 	if (!ensure(JoinButton != nullptr)) return false;
 	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
 
+	if (!ensure(QuitButton != nullptr)) return false;
+	QuitButton->OnClicked.AddDynamic(this, &UMainMenu::QuitPressed);
+
 	if (!ensure(IPJoinBackButton != nullptr)) return false;
 	IPJoinBackButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
 
@@ -23,47 +26,6 @@ bool UMainMenu::Initialize()
 	IPJoinButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
 
 	return true;
-}
-
-void UMainMenu::SetMenuInterface(IMenuInterface* MenuInterface)
-{
-	IMenu = MenuInterface;
-}
-
-void UMainMenu::Setup()
-{
-	AddToViewport();
-
-	UWorld* World = GetWorld();
-	if (!ensure(World != nullptr)) return;
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-
-	FInputModeUIOnly InputModeData;
-	//InputModeData.SetWidgetToFocus(TakeWidget());
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	PlayerController->SetInputMode(InputModeData);
-
-	PlayerController->bShowMouseCursor = true;
-}
-
-void UMainMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
-{
-	RemoveFromViewport();
-	
-	UWorld* World = InWorld;
-	if (!ensure(World != nullptr)) return;
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-
-	PlayerController->bShowMouseCursor = false;
-	FInputModeGameOnly InputModeData;
-	PlayerController->SetInputMode(InputModeData);
-
-	PlayerController->bShowMouseCursor = false;
 }
 
 void UMainMenu::HostServer()
@@ -82,6 +44,17 @@ void UMainMenu::JoinServer()
 		const FString& Address = IPAddressField->GetText().ToString();
 		IMenu->Join(Address);
 	}
+}
+
+void UMainMenu::QuitPressed()
+{
+	UWorld* World = GetWorld();
+	if (!ensure(World != nullptr)) return;
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	PlayerController->ConsoleCommand("quit");
 }
 
 void UMainMenu::OpenJoinMenu()

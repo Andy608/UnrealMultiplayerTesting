@@ -4,22 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MenuSystem/MenuInterface.h"
+#include "MenuSystem/MenuWidget.h"
 #include "MainMenu.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PUZZLEPLATFORMS_API UMainMenu : public UUserWidget
+class PUZZLEPLATFORMS_API UMainMenu : public UMenuWidget
 {
 	GENERATED_BODY()
-
-public:
-	void SetMenuInterface(IMenuInterface* MenuInterface);
-
-	void Setup();
-	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld);
 
 protected:
 	virtual bool Initialize();
@@ -30,6 +24,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* JoinButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* QuitButton;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* IPJoinButton;
@@ -49,13 +46,14 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UEditableTextBox* IPAddressField;
 
-	IMenuInterface* IMenu;
-
 	UFUNCTION()
 	void HostServer();
 
 	UFUNCTION()
 	void JoinServer();
+
+	UFUNCTION()
+	void QuitPressed();
 
 	UFUNCTION()
 	void OpenJoinMenu();

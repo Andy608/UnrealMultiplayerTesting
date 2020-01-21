@@ -9,6 +9,7 @@
 
 #include "PlatformTrigger.h"
 #include "MainMenu.h"
+#include "MenuSystem/MenuWidget.h"
 
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
@@ -19,6 +20,11 @@ UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitiali
 	
 	if (!ensure(MenuBPClass.Class != nullptr)) return;
 	MenuClass = MenuBPClass.Class;
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT("/Game/MenuSystem/WBP_InGameMenu"));
+
+	if (!ensure(InGameMenuBPClass.Class != nullptr)) return;
+	InGameMenuClass = InGameMenuBPClass.Class;
 }
 
 void UPuzzlePlatformsGameInstance::Init()
@@ -30,6 +36,16 @@ void UPuzzlePlatformsGameInstance::LoadMainMenu()
 {
 	if (!ensure(MenuClass != nullptr)) return;
 	Menu = CreateWidget<UMainMenu>(this, MenuClass);
+
+	if (!ensure(Menu != nullptr)) return;
+	Menu->Setup();
+	Menu->SetMenuInterface(this);
+}
+
+void UPuzzlePlatformsGameInstance::LoadInGameMenu()
+{
+	if (!ensure(InGameMenuClass != nullptr)) return;
+	UMenuWidget* Menu = CreateWidget<UMenuWidget>(this, InGameMenuClass);
 
 	if (!ensure(Menu != nullptr)) return;
 	Menu->Setup();
@@ -60,4 +76,12 @@ void UPuzzlePlatformsGameInstance::Join(const FString& Address)
 	if (!ensure(PlayerController != nullptr)) return;
 
 	PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
+}
+
+void UPuzzlePlatformsGameInstance::DisconnectAndLoadMenu()
+{
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	PlayerController->ClientTravel("/Game/MenuSystem/MainMenu", ETravelType::TRAVEL_Absolute);
 }
