@@ -2,9 +2,19 @@
 
 
 #include "MainMenu.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
+#include "MenuSystem/ServerRow.h"
+
+UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
+{
+	static ConstructorHelpers::FClassFinder<UUserWidget> ServerRowBPClass(TEXT("/Game/MenuSystem/WBP_ServerRow"));
+
+	if (!ensure(ServerRowBPClass.Class != nullptr)) return;
+	ServerRowClass = ServerRowBPClass.Class;
+}
 
 bool UMainMenu::Initialize()
 {
@@ -40,9 +50,17 @@ void UMainMenu::JoinServer()
 {
 	if (IMenu != nullptr)
 	{
-		if (!ensure(IPAddressField != nullptr)) return;
-		const FString& Address = IPAddressField->GetText().ToString();
-		IMenu->Join(Address);
+		//if (!ensure(IPAddressField != nullptr)) return;
+		//const FString& Address = IPAddressField->GetText().ToString();
+		//IMenu->Join(Address);
+
+		UWorld* World = GetWorld();
+		if (!ensure(World != nullptr)) return;
+
+		UServerRow* Row = CreateWidget<UServerRow>(World, ServerRowClass);
+		if (!ensure(Row != nullptr)) return;
+
+		ServerList->AddChild(Row);
 	}
 }
 
