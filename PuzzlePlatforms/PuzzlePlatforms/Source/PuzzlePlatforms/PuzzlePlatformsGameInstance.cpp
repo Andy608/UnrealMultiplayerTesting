@@ -157,10 +157,11 @@ void UPuzzlePlatformsGameInstance::CreateSession()
 	{
 		FOnlineSessionSettings SessionSettings;
 		SessionSettings.bIsLANMatch = false;
-		SessionSettings.NumPublicConnections = 2;
+		SessionSettings.NumPublicConnections = 10;
 		//If false, you'd have to send a personal invite for people to join.
 		SessionSettings.bShouldAdvertise = true;
 		SessionSettings.bUsesPresence = true;
+		SessionSettings.bAllowJoinViaPresence = true;
 
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 	}
