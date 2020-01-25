@@ -18,6 +18,10 @@ class PUZZLEPLATFORMS_API UMainMenu : public UMenuWidget
 public:
 	UMainMenu(const FObjectInitializer& ObjectInitializer);
 
+	void SetServerList(TArray<FString> ServerNames);
+
+	void SelectIndex(uint32 Index);
+
 protected:
 	virtual bool Initialize();
 
@@ -65,4 +69,6 @@ private:
 
 	UFUNCTION()
 	void OpenMainMenu();
+
+	TOptional<uint32> SelectedIndex;
 };

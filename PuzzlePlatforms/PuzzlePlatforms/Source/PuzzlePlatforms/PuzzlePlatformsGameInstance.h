@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "OnlineSubsystem.h"
 #include "MenuSystem/MenuInterface.h"
+#include "OnlineSessionInterface.h"
 #include "PuzzlePlatformsGameInstance.generated.h"
 
 /**
@@ -31,10 +32,13 @@ public:
 	virtual void Host() override;
 
 	UFUNCTION(Exec)
-	virtual void Join(const FString& Address) override;
+	virtual void Join(uint32 Index) override;
+	//virtual void Join(const FString& Address) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void DisconnectAndLoadMenu() override;
+
+	virtual void RefreshServerList() override;
 
 private:
 	TSubclassOf<class UMenuWidget> MenuClass;
@@ -47,6 +51,7 @@ private:
 	void OnCreateSessionComplete(FName SessionName, bool Success);
 	void OnDestroySessionComplete(FName SessionName, bool Success);
 	void OnFindSessionsComplete(bool Success);
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 	void CreateSession();
 };
