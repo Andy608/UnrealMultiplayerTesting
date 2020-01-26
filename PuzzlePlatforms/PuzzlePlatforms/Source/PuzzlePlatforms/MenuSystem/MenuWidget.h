@@ -16,6 +16,7 @@ class PUZZLEPLATFORMS_API UMenuWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
+	UMenuWidget(const FObjectInitializer& ObjectInitializer);
 	void SetMenuInterface(IMenuInterface* MenuInterface);
 
 	void Setup();

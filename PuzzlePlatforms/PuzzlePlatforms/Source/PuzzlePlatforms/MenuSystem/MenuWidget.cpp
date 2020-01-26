@@ -3,9 +3,10 @@
 
 #include "MenuWidget.h"
 
-void UMenuWidget::SetMenuInterface(IMenuInterface* MenuInterface)
+UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) :
+	UUserWidget(ObjectInitializer)
 {
-	IMenu = MenuInterface;
+	bIsFocusable = true;
 }
 
 void UMenuWidget::Setup()
@@ -13,13 +14,21 @@ void UMenuWidget::Setup()
 	AddToViewport();
 
 	UWorld* World = GetWorld();
-	if (!ensure(World != nullptr)) return;
+	if (!ensure(World != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Setup] WORLD IS NULL."));
+		return;
+	}
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
+	if (!ensure(PlayerController != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Setup] PLAYER CONTROLLER IS NULL."));
+		return;
+	}
 
 	FInputModeUIOnly InputModeData;
-	//InputModeData.SetWidgetToFocus(TakeWidget());
+	InputModeData.SetWidgetToFocus(TakeWidget());
 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 
 	PlayerController->SetInputMode(InputModeData);
@@ -30,10 +39,18 @@ void UMenuWidget::Setup()
 void UMenuWidget::Close()
 {
 	UWorld* World = GetWorld();
-	if (!ensure(World != nullptr)) return;
+	if (!ensure(World != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Close] WORLD IS NULL."));
+		return;
+	}
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
+	if (!ensure(PlayerController != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Close] PLAYER CONTROLLER IS NULL."));
+		return;
+	}
 
 	Close(PlayerController->GetLevel(), World);
 }
@@ -43,16 +60,27 @@ void UMenuWidget::Close(ULevel* InLevel, UWorld* InWorld)
 	RemoveFromViewport();
 
 	UWorld* World = InWorld;
-	if (!ensure(World != nullptr)) return;
+	if (!ensure(World != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Close(ULevel*, World*)] WORLD IS NULL."));
+		return;
+	}
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
+	if (!ensure(PlayerController != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Close(ULevel*, World*)] PLAYER CONTROLLER IS NULL."));
+		return;
+	}
 
-	PlayerController->bShowMouseCursor = false;
 	FInputModeGameOnly InputModeData;
 	PlayerController->SetInputMode(InputModeData);
-
 	PlayerController->bShowMouseCursor = false;
+}
+
+void UMenuWidget::SetMenuInterface(IMenuInterface* MenuInterface)
+{
+	IMenu = MenuInterface;
 }
 
 void UMenuWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
