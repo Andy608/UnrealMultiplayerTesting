@@ -29,7 +29,7 @@ public:
 	void LoadInGameMenu();
 
 	UFUNCTION(Exec)
-	virtual void Host() override;
+	virtual void Host(FString ServerName) override;
 
 	UFUNCTION(Exec)
 	virtual void Join(uint32 Index) override;
@@ -39,6 +39,8 @@ public:
 	virtual void DisconnectAndLoadMenu() override;
 
 	virtual void RefreshServerList() override;
+
+	void StartSession();
 
 private:
 	TSubclassOf<class UMenuWidget> MenuClass;
@@ -53,5 +55,6 @@ private:
 	void OnFindSessionsComplete(bool Success);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
+	FString DesiredServerName;
 	void CreateSession();
 };

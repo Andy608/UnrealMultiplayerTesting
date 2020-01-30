@@ -6,7 +6,6 @@
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) :
 	UUserWidget(ObjectInitializer)
 {
-	bIsFocusable = true;
 }
 
 void UMenuWidget::Setup()

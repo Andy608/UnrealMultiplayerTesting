@@ -36,7 +36,21 @@ bool UMainMenu::Initialize()
 		UE_LOG(LogTemp, Warning, TEXT("[Initialize] HOST BUTTON IS NULL."));
 		return false;
 	}
-	HostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+	HostButton->OnClicked.AddDynamic(this, &UMainMenu::OpenHostMenu);
+
+	if (!ensure(HostBackButton != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Initialize] HOST BACK BUTTON IS NULL."));
+		return false;
+	}
+	HostBackButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
+
+	if (!ensure(HostHostButton != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Initialize] HOST HOST BUTTON IS NULL."));
+		return false;
+	}
+	HostHostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
 
 	if (!ensure(JoinButton != nullptr))
 	{
@@ -69,11 +83,16 @@ bool UMainMenu::Initialize()
 	return true;
 }
 
+void UMainMenu::OpenHostMenu()
+{
+	MenuSwitcher->SetActiveWidget(HostMenu);
+}
+
 void UMainMenu::HostServer()
 {
 	if (IMenu != nullptr)
 	{
-		IMenu->Host();
+		IMenu->Host(ServerName->GetText().ToString());
 	}
 	else
 	{
@@ -81,7 +100,7 @@ void UMainMenu::HostServer()
 	}
 }
 
-void UMainMenu::SetServerList(TArray<FString> ServerNames)
+void UMainMenu::SetServerList(TArray<FServerData> Servers)
 {
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr))
@@ -93,7 +112,7 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 	ServerList->ClearChildren();
 
 	uint32 i = 0;
-	for (const FString& ServerName : ServerNames)
+	for (const FServerData& Server : Servers)
 	{
 		UServerRow* Row = CreateWidget<UServerRow>(World, ServerRowClass);
 		if (!ensure(Row != nullptr))
@@ -102,7 +121,10 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 			return;
 		}
 
-		Row->ServerName->SetText(FText::FromString(ServerName));
+		Row->ServerName->SetText(FText::FromString(Server.ServerName));
+		Row->HostName->SetText(FText::FromString(Server.HostUsername));
+		Row->ConnectionFraction->SetText(FText::FromString(FString::Printf(TEXT("%d/%d"), Server.CurrentPlayers, Server.MaxPlayers)));
+
 		Row->Setup(this, i);
 		++i;
 
@@ -113,6 +135,23 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 void UMainMenu::SelectIndex(uint32 Index)
 {
 	SelectedIndex = Index;
+	UpdateChildren();
+}
+
+void UMainMenu::UpdateChildren()
+{
+	for (int32 i = 0; i < ServerList->GetChildrenCount(); ++i)
+	{
+		UServerRow* Row = Cast<UServerRow>(ServerList->GetChildAt(i));
+		if (Row != nullptr)
+		{
+			Row->IsSelected = (SelectedIndex.IsSet() && SelectedIndex.GetValue() == i);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[UpdateChildren] ROW IS NULL."));
+		}
+	}
 }
 
 void UMainMenu::JoinServer()

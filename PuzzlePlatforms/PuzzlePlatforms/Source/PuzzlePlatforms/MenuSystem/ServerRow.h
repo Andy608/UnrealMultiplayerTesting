@@ -18,6 +18,15 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ServerName;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* HostName;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* ConnectionFraction;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool IsSelected = false;
+
 	void Setup(class UMainMenu* Parent, uint32 Index);
 
 private:
