@@ -2,7 +2,7 @@
 
 #include "GoKartReplicationComponent.h"
 #include "UnrealNetwork.h"
-#include "Engine/World.h"
+#include "GameFramework/Actor.h"
 
 // Sets default values for this component's properties
 UGoKartReplicationComponent::UGoKartReplicationComponent()
@@ -68,9 +68,13 @@ void UGoKartReplicationComponent::ClientTick(float DeltaTime)
 
 	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
 	FHermiteCubicSpline Spline = CreateSpline();
+
 	InterpolateLocation(Spline, LerpRatio);
+
 	InterpolateVelocity(Spline, LerpRatio);
+
 	InterpolateRotation(LerpRatio);
+
 }
 
 FHermiteCubicSpline UGoKartReplicationComponent::CreateSpline()
@@ -83,32 +87,38 @@ FHermiteCubicSpline UGoKartReplicationComponent::CreateSpline()
 	return Spline;
 }
 
-float UGoKartReplicationComponent::VelocityToDerivative()
+void UGoKartReplicationComponent::InterpolateLocation(const FHermiteCubicSpline &Spline, float LerpRatio)
 {
-	//Multiply by 100 because unreal units are in centimeters
-	return ClientTimeBetweenLastUpdates * 100.0f;
+	FVector NewLocation = Spline.InterpolateLocation(LerpRatio);
+	if (MeshOffsetRoot != nullptr)
+	{
+		MeshOffsetRoot->SetWorldLocation(NewLocation);
+	}
+}
+
+void UGoKartReplicationComponent::InterpolateVelocity(const FHermiteCubicSpline &Spline, float LerpRatio)
+{
+	FVector NewDerivative = Spline.InterpolateDerivative(LerpRatio);
+	FVector NewVelocity = NewDerivative / VelocityToDerivative();
+	MovementComponent->SetVelocity(NewVelocity);
 }
 
 void UGoKartReplicationComponent::InterpolateRotation(float LerpRatio)
 {
 	FQuat TargetRotation = ServerState.Transform.GetRotation();
 	FQuat StartRotation = ClientStartTransform.GetRotation();
+
 	FQuat NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
-	GetOwner()->SetActorRotation(NewRotation);
+
+	if (MeshOffsetRoot != nullptr)
+	{
+		MeshOffsetRoot->SetWorldRotation(NewRotation);
+	}
 }
 
-void UGoKartReplicationComponent::InterpolateLocation(const FHermiteCubicSpline& Spline, float LerpRatio)
+float UGoKartReplicationComponent::VelocityToDerivative()
 {
-	FVector NewLocation = Spline.InterpolateLocation(LerpRatio);
-	GetOwner()->SetActorLocation(NewLocation);
-}
-
-void UGoKartReplicationComponent::InterpolateVelocity(const FHermiteCubicSpline& Spline, float LerpRatio)
-{
-	//Gives slope of that point
-	FVector NewDerivative = Spline.InterpolateDerivative(LerpRatio);
-	FVector NewVelocity = NewDerivative / VelocityToDerivative();
-	MovementComponent->SetVelocity(NewVelocity);
+	return ClientTimeBetweenLastUpdates * 100;
 }
 
 
@@ -155,8 +165,14 @@ void UGoKartReplicationComponent::SimulatedProxy_OnRep_ServerState()
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
 
-	ClientStartTransform = GetOwner()->GetActorTransform();
+	if (MeshOffsetRoot != nullptr)
+	{
+		ClientStartTransform.SetLocation(MeshOffsetRoot->GetComponentLocation());
+		ClientStartTransform.SetRotation(MeshOffsetRoot->GetComponentQuat());
+	}
 	ClientStartVelocity = MovementComponent->GetVelocity();
+
+	GetOwner()->SetActorTransform(ServerState.Transform);
 }
 
 

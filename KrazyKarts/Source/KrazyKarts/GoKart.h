@@ -28,10 +28,11 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-private:
-	UPROPERTY(VisibleAnywhere)
+	//meta = (UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AllowPrivateAccess = "true") - can do this instead of making this field public
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UGoKartReplicationComponent* ReplicationComponent;
 
+private:
 	UPROPERTY(VisibleAnywhere)
 	UGoKartMovementComponent* MovementComponent;
 
