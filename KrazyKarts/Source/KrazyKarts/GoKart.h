@@ -6,6 +6,39 @@
 #include "GameFramework/Pawn.h"
 #include "GoKart.generated.h"
 
+USTRUCT()
+struct FGoKartMove
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	float TimeStamp;
+
+	UPROPERTY()
+	float Throttle;
+
+	UPROPERTY()
+	float SteeringThrow;
+
+	UPROPERTY()
+	float DeltaTime;
+};
+
+USTRUCT()
+struct FGoKartState
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	FGoKartMove LastMove;
+
+	UPROPERTY()
+	FVector Velocity;
+
+	UPROPERTY()
+	FTransform Transform;
+};
+
 UCLASS()
 class KRAZYKARTS_API AGoKart : public APawn
 {
@@ -25,7 +58,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 
 private:
 	//Kilograms
@@ -48,27 +80,24 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MinTurningRadius = 10;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
+	FGoKartState ServerState;
+
 	FVector Velocity;
-	
-	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTransform)
-	FTransform ReplicatedTransform;
+	float Throttle;
+	float SteeringThrow;
+
+	TArray<FGoKartMove> UnacknowledgedMoves;
 
 	UFUNCTION()
-	void OnRep_ReplicatedTransform();
-
-	UPROPERTY(Replicated)
-	float Throttle;
-
-	UPROPERTY(Replicated)
-	float SteeringThrow;
+	void OnRep_ServerState();
 
 	//Newtons
 	UPROPERTY(EditAnywhere)
 	float MaxDrivingForce = 10000;
 
 	void UpdateLocationFromVelocity(float DeltaTime);
-	void ApplyRotation(float DeltaTime);
+	void ApplyRotation(float DeltaTime, float SteeringThrow);
 
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
@@ -76,9 +105,11 @@ private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveForward(float Value);
+	void SimulateMove(const FGoKartMove& Move);
+
+	FGoKartMove CreateMove(float DeltaTime);
+	void ClearAcknowledgedMoves(FGoKartMove LastMove);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveRight(float Value);
+	void Server_SendMove(FGoKartMove Move);
 };
