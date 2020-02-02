@@ -22,6 +22,24 @@ struct FGoKartState
 		FTransform Transform;
 };
 
+struct FHermiteCubicSpline
+{
+	FVector StartLocation;
+	FVector StartDerivative;
+	FVector TargetLocation;
+	FVector TargetDerivative;
+
+	FVector InterpolateLocation(float LerpRatio) const
+	{
+		return FMath::CubicInterp(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+
+	FVector InterpolateDerivative(float LerpRatio) const
+	{
+		return FMath::CubicInterpDerivative(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+};
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class KRAZYKARTS_API UGoKartReplicationComponent : public UActorComponent
 {
@@ -41,20 +59,43 @@ public:
 
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
-		FGoKartState ServerState;
+	FGoKartState ServerState;
 
 	UPROPERTY()
-		UGoKartMovementComponent* MovementComponent;
+	UGoKartMovementComponent* MovementComponent;
+
+	UPROPERTY()
+	USceneComponent* MeshOffsetRoot;
 
 	TArray<FGoKartMove> UnacknowledgedMoves;
 
+	float ClientTimeSinceUpdate;
+	float ClientTimeBetweenLastUpdates;
+	FTransform ClientStartTransform;
+	FVector ClientStartVelocity;
+
 	UFUNCTION()
-		void OnRep_ServerState();
+	void OnRep_ServerState();
+
+	void SimulatedProxy_OnRep_ServerState();
+	void AutonomousProxy_OnRep_ServerState();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_SendMove(FGoKartMove Move);
+	void Server_SendMove(FGoKartMove Move);
+
+	UFUNCTION(BlueprintCallable)
+	void SetMeshOffsetRoot(USceneComponent* Root) { MeshOffsetRoot = Root; }
 
 	void ClearAcknowledgedMoves(FGoKartMove LastMove);
 
 	void UpdateServerState(const FGoKartMove& Move);
+
+	void ClientTick(float DeltaTime);
+
+	FHermiteCubicSpline CreateSpline();
+	float VelocityToDerivative();
+
+	void InterpolateLocation(const FHermiteCubicSpline& Spline, float LerpRatio);
+	void InterpolateVelocity(const FHermiteCubicSpline& Spline, float LerpRatio);
+	void InterpolateRotation(float LerpRatio);
 };
