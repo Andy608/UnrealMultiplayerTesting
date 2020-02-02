@@ -12,14 +12,14 @@ struct FGoKartState
 {
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY()
-		FGoKartMove LastMove;
+	UPROPERTY()
+	FGoKartMove LastMove;
 
 	UPROPERTY()
-		FVector Velocity;
+	FVector Velocity;
 
 	UPROPERTY()
-		FTransform Transform;
+	FTransform Transform;
 };
 
 struct FHermiteCubicSpline
@@ -73,6 +73,8 @@ private:
 	float ClientTimeBetweenLastUpdates;
 	FTransform ClientStartTransform;
 	FVector ClientStartVelocity;
+
+	float ClientSimulatedTime;
 
 	UFUNCTION()
 	void OnRep_ServerState();

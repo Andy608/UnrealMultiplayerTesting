@@ -195,6 +195,7 @@ void UGoKartReplicationComponent::Server_SendMove_Implementation(FGoKartMove Mov
 {
 	if (MovementComponent == nullptr) return;
 
+	ClientSimulatedTime += Move.DeltaTime;
 	MovementComponent->SimulateMove(Move);
 
 	UpdateServerState(Move);
@@ -202,5 +203,20 @@ void UGoKartReplicationComponent::Server_SendMove_Implementation(FGoKartMove Mov
 
 bool UGoKartReplicationComponent::Server_SendMove_Validate(FGoKartMove Move)
 {
-	return true; //TODO: Make better validation
+	float ProposedTime = ClientSimulatedTime + Move.DeltaTime;
+	bool ClientRunningAhead = (ProposedTime > GetWorld()->TimeSeconds);
+
+	if (ClientRunningAhead)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Client is runnning too fast!"));
+		return false;
+	}
+
+	if (!Move.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Received invalid move."));
+		return false;
+	}
+
+	return true;
 }
